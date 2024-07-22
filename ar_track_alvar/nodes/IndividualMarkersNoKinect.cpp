@@ -73,6 +73,7 @@ std::string cam_info_topic;
 std::string output_frame;
 int marker_resolution = 5;  // default marker resolution
 int marker_margin = 2;      // default marker margin
+bool negate_pitch_roll; // default false (do not negate pitch and roll)
 
 void getCapCallback(const sensor_msgs::ImageConstPtr& image_msg);
 
@@ -139,6 +140,13 @@ void getCapCallback(const sensor_msgs::ImageConstPtr& image_msg)
         if (z_axis_cam.z() > 0)
         {
           continue;
+        }
+
+        if(negate_pitch_roll) // if we want to negate pitch and roll
+        {
+          // ROS_INFO("qx:%f, qx:%f, qx:%f, qx:%f, yaw:%f", qx, qy, qz, qw, tf::getYaw(rotation));
+          rotation.setRPY(M_PI, 0, tf::getYaw(rotation));
+          t.setRotation(rotation);
         }
 
         // Publish the transform from the camera to the marker
@@ -306,6 +314,7 @@ int main(int argc, char* argv[])
       ROS_ERROR("Param 'output_frame' has to be set.");
       exit(EXIT_FAILURE);
     }
+    pn.param("negate_pitch_roll", negate_pitch_roll, false);
 
     // Camera input topics. Use remapping to map to your camera topics.
     cam_image_topic = "camera_image";
